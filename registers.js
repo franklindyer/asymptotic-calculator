@@ -6,13 +6,14 @@ class Register {
     static ans = undefined;
     static regList = [];
 
-    static addRegister(divID) {
+    static addRegister(id) {
 	let registers = document.getElementById("grord-registers");
+	let divID = `grord-register-${id}`;
 
 	let newReg = document.createElement("div");
 	newReg.id = divID;
 	newReg.classList.add("grord-register");
-	newReg.onclick = () => { Register.computeWith(divID); }
+	newReg.onclick = () => Register.computeWith(id);
 
 	registers.appendChild(newReg);
 	return newReg;
@@ -25,6 +26,7 @@ class Register {
     }
 
     static initButtons() {
+	document.getElementById("register-button").onclick = () => { new Register() };
 	document.getElementById("sums-button").onclick = () => { Register.nextFxn = (gr) => gr.sums() };
 	document.getElementById("reciprocal-button").onclick = () => { Register.nextFxn = (gr) => gr.reciprocal() };
     }
@@ -34,7 +36,7 @@ class Register {
 
 	this.id = Register.numRegisters++;
 	this.divID = `grord-register-${this.id}`;
-	this.view = Register.addRegister(this.divID);
+	this.view = Register.addRegister(this.id);
 	this.setValue(grOrd);
 
 	Register.regList.push(this);
