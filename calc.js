@@ -25,16 +25,19 @@ class GenericGrowthOrder {
 	MathJax.typeset();
     }
 
-    // For inequality/comparison of growth orders.
+    // Inequality/comparison
     // Comparison should always be deferred to the growth order of higher rank.
     leq(grOrd) { console.log("Comparison not implemented for generic growth order") };
     geq(grOrd) { console.log("Comparison not implemented for generic growth order") };
 
-    // Reciprocals of growth orders.
+    // Reciprocals.
     reciprocal() { console.log("Reciprocals not implemented for generic growth order") };
 
-    // Multiplication of growth orders.
+    // Multiplication
     times(grOrd) { console.log("Multiplication not implemented for generic growth order") };
+
+    // Partial sums
+    sums(grOrd) { console.log("Partial sums not implemented for generic growth order") };
 }
 
 class SimpleGrowthOrder extends GenericGrowthOrder{
@@ -87,5 +90,17 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
 	    let p2 = grOrd.logPowers[i];
 	    return (p1 + p2);
 	}));
+    }
+
+    sums() {
+	let i = 0;
+	while(this.logPowers.length > i && this.logPowers[i] == -1) { i++; }
+	let newLogPowers = this.logPowers.slice();
+	if (i == this.logPowers.length) {
+	    newLogPowers = Array(i).fill(0);
+	    newLogPowers.push(0);
+	}
+	newLogPowers[i]++;
+	return new SimpleGrowthOrder(newLogPowers);
     }
 }

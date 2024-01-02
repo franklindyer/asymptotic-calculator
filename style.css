@@ -1,0 +1,34 @@
+.calc-button {
+    height: 50px;
+    width: 50px;
+    font-size: 20px;
+    background-color: rgba(220, 220, 220, 1);
+    background-image: linear-gradient(
+	to top left,
+	rgba(0, 0, 0, 0.2),
+	rgba(0, 0, 0, 0.2) 30%,
+	rgba(0, 0, 0, 0)
+    );
+}
+
+.calc-button:hover {
+    background-color: rgba(255, 255, 255, 1);
+}
+
+#grord-registers {
+    margin-left: auto;
+    margin-right: auto;
+    width: 30%;
+}
+
+.grord-register {
+    margin: 5px;
+    padding: 10px;
+    border: 2px solid black;
+    border-radius: 5px;
+    box-shadow: 8px 4px 4px gray;
+}
+
+.grord-register:hover {
+    box-shadow: none;
+}
