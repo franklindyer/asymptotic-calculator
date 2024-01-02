@@ -45,7 +45,7 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
     }
 
     display() {
-	if (this.logPowers == 0) return "1";
+	if (this.logPowers.every((x) => x === 0)) return "1";
 	if (!this.logPowers.every((x) => x >= 0)) {
 	    let numerator = new SimpleGrowthOrder(this.logPowers.map((x) => (x > 0) ? x : 0));
 	    let denominator = new SimpleGrowthOrder(this.logPowers.map((x) => (x < 0) ? -x : 0));
