@@ -21,14 +21,25 @@ class Register {
 
     static computeWith(regID) {
 	if (Register.nextFxn == undefined) return;
-	Register.ans.setValue(Register.nextFxn(Register.regList.at(regID).getValue()));
-	Register.nextFxn = undefined;
+	let nextAns = Register.nextFxn(Register.regList.at(regID).getValue());
+	
+	// When an actual growth order is returned, we add it to the "ans" register and clear the next function
+	if (nextAns != undefined) {
+	    Register.ans.setValue(nextAns);
+	    Register.nextFxn = undefined;
+	}
     }
 
     static initButtons() {
 	document.getElementById("register-button").onclick = () => { new Register() };
 	document.getElementById("sums-button").onclick = () => { Register.nextFxn = (gr) => gr.sums() };
 	document.getElementById("reciprocal-button").onclick = () => { Register.nextFxn = (gr) => gr.reciprocal() };
+	document.getElementById("times-button").onclick = () => { 
+	    Register.nextFxn = (gr1) => { 
+		Register.nextFxn = (gr2) => gr1.times(gr2);
+		return undefined;
+	    };
+	};
     }
 
     constructor(grOrd) {
