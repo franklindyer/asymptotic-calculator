@@ -100,7 +100,11 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
 	    newLogPowers = Array(i).fill(0);
 	    newLogPowers.push(0);
 	}
-	newLogPowers[i]++;
+	if (newLogPowers[i] > -1) {
+	    newLogPowers[i]++;
+	} else {
+	    newLogPowers = [];
+	}
 	return new SimpleGrowthOrder(newLogPowers);
     }
 }
