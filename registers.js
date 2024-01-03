@@ -30,7 +30,7 @@ class Register {
     }
 
     static displayMessage(msg) {
-	console.log(msg);
+	document.getElementById("calc-info").value = msg;
     }
 
     static computeWith(regID) {
@@ -39,50 +39,84 @@ class Register {
     }
 
     static initButtons() {
-	document.getElementById("register-button").onclick = () => { new Register() };
-	document.getElementById("move-button").onclick = () => { 
+	let regBtn = document.getElementById("register-button")
+	regBtn.onclick = () => { new Register() };
+	regBtn.onmouseover = () => { Register.displayMessage("Add another register.") }
+
+	let moveBtn = document.getElementById("move-button")
+	moveBtn.onclick = () => { 
+	    Register.displayMessage("Click on a source register whose value you want to copy."); 
 	    Register.nextFxn = (reg1) => {
-		Register.nextFxn = (reg2) => { 
+		Register.displayMessage("Click on a target register to copy that value to.")
+		Register.nextFxn = (reg2) => {
+		    Register.displayMessage("") 
 		    reg2.setValue(reg1.value);
 		    Register.nextFxn = undefined;
 		};
 		return undefined;
-	    } 
+	    };
 	};
-	document.getElementById("sums-button").onclick = () => { 
+	moveBtn.onmouseover = () => { Register.displayMessage("Move one register's value to another register.") };
+
+	let sumsBtn = document.getElementById("sums-button")
+	sumsBtn.onclick = () => {
+	    Register.displayMessage("Click on the register that you would like to sum."); 
 	    Register.nextFxn = (reg) => { 
+		Register.displayMessage("")
 		Register.ans.setValue(reg.value.sums());
 		Register.nextFxn = undefined;
 	    }
 	};
-	document.getElementById("delta-button").onclick = () => {
+	sumsBtn.onmouseover = () => { Register.displayMessage("Take partial sums of a growth order.") };
+
+	let deltaBtn = document.getElementById("delta-button")
+	deltaBtn.onclick = () => {
+	    Register.displayMessage("Click on the register that you would like to difference."); 
 	    Register.nextFxn = (reg) => {
+		Register.displayMessage("");
 		let res = reg.value.delta();
 		if (res == undefined) Register.displayMessage("Difference operator can only be used with growth orders greater than 1.");
 		else Register.ans.setValue(res);
 		Register.nextFxn = undefined;
 	    }
 	}
-	document.getElementById("reciprocal-button").onclick = () => { 
+	deltaBtn.onmouseover = () => { Register.displayMessage("Find a growth order which sums to a given growth order (if possible).") }
+
+	let recipBtn = document.getElementById("reciprocal-button")
+	recipBtn.onclick = () => { 
+	    Register.displayMessage("Click on the register that you would like to invert."); 
 	    Register.nextFxn = (reg) => {
+		Register.displayMessage("");
 		Register.ans.setValue(reg.value.reciprocal())
 		Register.nextFxn = undefined;
 	    }
 	};
-	document.getElementById("times-button").onclick = () => { 
+	recipBtn.onmouseover = () => { Register.displayMessage("Take the reciprocal of a growth order.") }
+
+	let timesBtn = document.getElementById("times-button")
+	timesBtn.onclick = () => { 
+	    Register.displayMessage("Click on the first growth order you would like to multiply."); 
 	    Register.nextFxn = (reg1) => { 
+		Register.displayMessage("Click on the second growth order you would like to multiply."); 
 		Register.nextFxn = (reg2) => {
+		    Register.displayMessage("");
 		    Register.ans.setValue(reg1.value.times(reg2.value));
 		    Register.nextFxn = undefined;
 		};
 	    };
 	};
-	document.getElementById("exp-button").onclick = () => {
+	timesBtn.onmouseover = () => { Register.displayMessage("Multiply two growth orders.") }
+
+	let expBtn = document.getElementById("exp-button")
+	expBtn.onclick = () => {
+	    Register.displayMessage("Click on the growth order that you would like to exponentiate.");
 	    Register.nextFxn = (reg) => {
+		Register.displayMessage("");
 		Register.ans.setValue(new ExpGrowthOrder(reg.value));
 		Register.nextFxn = undefined;
 	    };
 	};
+	expBtn.onmouseover = () => { Register.displayMessage("Extend your repertoire of growth orders by taking an exponential.") }
     }
 
     constructor(grOrd) {

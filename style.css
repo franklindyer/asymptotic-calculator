@@ -36,6 +36,14 @@
     background-color: rgba(255, 255, 255, 1);
 }
 
+#calc-info {
+    font-family: Courier;
+    font-size: 20px;
+    width: 90%;
+    margin: 0 auto;
+    display: block;
+}
+
 #grord-registers {
     margin-top: 20px;
     margin-left: auto;
