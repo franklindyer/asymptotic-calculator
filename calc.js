@@ -180,9 +180,19 @@ class ExpGrowthOrder extends GenericGrowthOrder {
 	return factors.join(" \\cdot ");
     }
 
-    leq(grOrd) {}
+    leq(grOrd) {
+	if (grOrd.rank > this.rank) return grOrd.geq(this);
+	let grOrdCast = this.upcast(grOrd);
+	let quotient = this.times(grOrdCast.reciprocal());
+	return quotient.log().leq(new SimpleGrowthOrder([]));	
+    }
 
-    geq(grOrd) {}
+    geq(grOrd) {
+	if (grOrd.rank > this.rank) return grOrd.leq(this);
+	let grOrdCast = this.upcast(grOrd);
+	let quotient = this.times(grOrdCast.reciprocal());
+	return quotient.log().geq(new SimpleGrowthOrder([]));
+    }
 
     reciprocal() {
 	return new ExpGrowthOrder(this.simpleTerm.reciprocal().logPowers, this.expPowers.map((x) => -x));
@@ -198,12 +208,14 @@ class ExpGrowthOrder extends GenericGrowthOrder {
 
     sums() {}
 
-    delta() {}
+    delta() {
+	return this.times(this.log().delta());
+    }
 
     log() {
 	let prefixLog = undefined;
 	let suffixLog = ExpGrowthOrder.extStack.at(this.rank-1);
-	if (this.expPowers.length == 1) prefixLog = this.simpleTerm.logPowers;
+	if (this.expPowers.length == 1) prefixLog = this.simpleTerm.log();
 	else prefixLog = new ExpGrowthOrder(this.simpleTerm.logPowers, this.expPowers.slice(0,-1)).log();
 	if (prefixLog.abs().leq(suffixLog)) return suffixLog;
 	else return prefixLog;
