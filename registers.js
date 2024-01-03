@@ -29,6 +29,10 @@ class Register {
 	return newReg;
     }
 
+    static displayMessage(msg) {
+	console.log(msg);
+    }
+
     static computeWith(regID) {
 	if (Register.nextFxn == undefined) return;
 	Register.nextFxn(Register.regList.at(regID));
@@ -51,6 +55,14 @@ class Register {
 		Register.nextFxn = undefined;
 	    }
 	};
+	document.getElementById("delta-button").onclick = () => {
+	    Register.nextFxn = (reg) => {
+		let res = reg.value.delta();
+		if (res == undefined) Register.displayMessage("Difference operator can only be used with growth orders greater than 1.");
+		else Register.ans.setValue(res);
+		Register.nextFxn = undefined;
+	    }
+	}
 	document.getElementById("reciprocal-button").onclick = () => { 
 	    Register.nextFxn = (reg) => {
 		Register.ans.setValue(reg.value.reciprocal())
@@ -63,6 +75,12 @@ class Register {
 		    Register.ans.setValue(reg1.value.times(reg2.value));
 		    Register.nextFxn = undefined;
 		};
+	    };
+	};
+	document.getElementById("exp-button").onclick = () => {
+	    Register.nextFxn = (reg) => {
+		Register.ans.setValue(new ExpGrowthOrder(reg.value));
+		Register.nextFxn = undefined;
 	    };
 	};
     }
