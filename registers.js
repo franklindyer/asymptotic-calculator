@@ -6,14 +6,24 @@ class Register {
     static ans = undefined;
     static regList = [];
 
-    static addRegister(id) {
+    static addRegisterNode(id) {
 	let registers = document.getElementById("grord-registers");
-	let divID = `grord-register-${id}`;
 
 	let newReg = document.createElement("div");
-	newReg.id = divID;
+	newReg.id = `grord-register-${id}`;
 	newReg.classList.add("grord-register");
 	newReg.onclick = () => Register.computeWith(id);
+	newReg.appendChild(document.createElement("p"));
+
+	let clipboardButton = document.createElement("button");
+	clipboardButton.id = `copy-register-${id}`;
+	clipboardButton.classList.add("copy-register");
+	clipboardButton.copyText = undefined;
+	clipboardButton.innerText = "📋";
+	clipboardButton.onclick = () => { 
+	    navigator.clipboard.writeText(newReg.copyText) 
+	};
+	newReg.appendChild(clipboardButton);
 
 	registers.appendChild(newReg);
 	return newReg;
@@ -21,13 +31,7 @@ class Register {
 
     static computeWith(regID) {
 	if (Register.nextFxn == undefined) return;
-	let nextAns = Register.nextFxn(Register.regList.at(regID));
-	
-	// When an actual growth order is returned, we add it to the "ans" register and clear the next function
-	if (nextAns != undefined) {
-	    Register.ans.setValue(nextAns);
-	    Register.nextFxn = undefined;
-	}
+	Register.nextFxn(Register.regList.at(regID));
     }
 
     static initButtons() {
@@ -41,12 +45,24 @@ class Register {
 		return undefined;
 	    } 
 	};
-	document.getElementById("sums-button").onclick = () => { Register.nextFxn = (reg) => reg.value.sums() };
-	document.getElementById("reciprocal-button").onclick = () => { Register.nextFxn = (reg) => reg.value.reciprocal() };
+	document.getElementById("sums-button").onclick = () => { 
+	    Register.nextFxn = (reg) => { 
+		Register.ans.setValue(reg.value.sums());
+		Register.nextFxn = undefined;
+	    }
+	};
+	document.getElementById("reciprocal-button").onclick = () => { 
+	    Register.nextFxn = (reg) => {
+		Register.ans.setValue(reg.value.reciprocal())
+		Register.nextFxn = undefined;
+	    }
+	};
 	document.getElementById("times-button").onclick = () => { 
 	    Register.nextFxn = (reg1) => { 
-		Register.nextFxn = (reg2) => reg1.value.times(reg2.value);
-		return undefined;
+		Register.nextFxn = (reg2) => {
+		    Register.ans.setValue(reg1.value.times(reg2.value));
+		    Register.nextFxn = undefined;
+		};
 	    };
 	};
     }
@@ -56,7 +72,7 @@ class Register {
 
 	this.id = Register.numRegisters++;
 	this.divID = `grord-register-${this.id}`;
-	this.view = Register.addRegister(this.id);
+	this.view = Register.addRegisterNode(this.id);
 	this.setValue(grOrd);
 
 	Register.regList.push(this);
@@ -68,7 +84,8 @@ class Register {
 
     setValue(grOrd) {
 	this.value = grOrd;
-	grOrd.displayToBox(this.divID);
+	let displayText = grOrd.displayToBox(this.divID);
+	document.getElementById(`grord-register-${this.id}`).copyText = displayText;
     }
 }
 

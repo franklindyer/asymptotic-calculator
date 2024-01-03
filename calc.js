@@ -21,8 +21,9 @@ class GenericGrowthOrder {
     display() { console.log("Pretty printing not implemented for generic growth order") };
     displayToBox(id) {
 	let texString = `\$\$${this.display()}\$\$`;
-	document.getElementById(id).innerHTML = texString;
+	document.getElementById(id).getElementsByTagName("p")[0].innerText = texString;
 	MathJax.typeset();
+	return texString;
     }
 
     // Inequality/comparison
