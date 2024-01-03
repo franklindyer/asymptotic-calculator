@@ -21,7 +21,7 @@ class Register {
 
     static computeWith(regID) {
 	if (Register.nextFxn == undefined) return;
-	let nextAns = Register.nextFxn(Register.regList.at(regID).getValue());
+	let nextAns = Register.nextFxn(Register.regList.at(regID));
 	
 	// When an actual growth order is returned, we add it to the "ans" register and clear the next function
 	if (nextAns != undefined) {
@@ -32,11 +32,20 @@ class Register {
 
     static initButtons() {
 	document.getElementById("register-button").onclick = () => { new Register() };
-	document.getElementById("sums-button").onclick = () => { Register.nextFxn = (gr) => gr.sums() };
-	document.getElementById("reciprocal-button").onclick = () => { Register.nextFxn = (gr) => gr.reciprocal() };
+	document.getElementById("move-button").onclick = () => { 
+	    Register.nextFxn = (reg1) => {
+		Register.nextFxn = (reg2) => { 
+		    reg2.setValue(reg1.value);
+		    Register.nextFxn = undefined;
+		};
+		return undefined;
+	    } 
+	};
+	document.getElementById("sums-button").onclick = () => { Register.nextFxn = (reg) => reg.value.sums() };
+	document.getElementById("reciprocal-button").onclick = () => { Register.nextFxn = (reg) => reg.value.reciprocal() };
 	document.getElementById("times-button").onclick = () => { 
-	    Register.nextFxn = (gr1) => { 
-		Register.nextFxn = (gr2) => gr1.times(gr2);
+	    Register.nextFxn = (reg1) => { 
+		Register.nextFxn = (reg2) => reg1.value.times(reg2.value);
 		return undefined;
 	    };
 	};

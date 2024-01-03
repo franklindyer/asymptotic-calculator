@@ -95,14 +95,11 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
     sums() {
 	let i = 0;
 	while(this.logPowers.length > i && this.logPowers[i] == -1) { i++; }
-	let newLogPowers = this.logPowers.slice();
-	if (i == this.logPowers.length) {
-	    newLogPowers = Array(i).fill(0);
-	    newLogPowers.push(0);
-	}
+	let newLogPowers = Array(i).fill(0).concat(this.logPowers.slice(i));
+	if (i == this.logPowers.length) newLogPowers.push(0);
 	if (newLogPowers[i] > -1) {
 	    newLogPowers[i]++;
-	} else {
+	} else if (newLogPowers[i] < -1) {
 	    newLogPowers = [];
 	}
 	return new SimpleGrowthOrder(newLogPowers);

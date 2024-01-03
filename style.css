@@ -4,6 +4,8 @@
 }
 
 .calc-button {
+    display: block;
+    float: left;
     font-size: 30px;
     background-color: rgba(220, 220, 220, 1);
     background-image: linear-gradient(
@@ -12,8 +14,6 @@
 	rgba(0, 0, 0, 0.2) 30%,
 	rgba(0, 0, 0, 0)
     );
-    float: left;
-    display: inline-block;
     margin: 5px;
     width: 50px;
     height: 50px;
@@ -27,6 +27,9 @@
 
 #calc-buttons {
     display: block;
+    width: 100%;
+    padding: 10px;
+    overflow: auto;
 }
 
 .calc-button:hover {
@@ -37,6 +40,7 @@
     margin-left: auto;
     margin-right: auto;
     width: 30%;
+    display: block;
 }
 
 .grord-register {
