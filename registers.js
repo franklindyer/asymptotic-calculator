@@ -125,7 +125,7 @@ class Register {
     }
 
     constructor(grOrd, isConstant) {
-	if (grOrd == undefined) grOrd = new SimpleGrowthOrder([1]);
+	if (grOrd == undefined) grOrd = new SimpleGrowthOrder([ONE]);
 	if (isConstant == undefined) isConstant = false;
 
 	this.id = Register.numRegisters++;

@@ -7,20 +7,56 @@ Object.defineProperty(Array.prototype, 'lexLeq', {
 	let arr2 = arr.slice();
 	while (true) {
 	    if (arr1.length == 0 && arr2.length == 0) return true;
-	    if (arr1.length == 0) arr1 = [0];
-	    if (arr2.length == 0) arr2 = [0];
-	    if (arr1[0] < arr2[0]) return true;
-	    if (arr1[0] > arr2[0]) return false;
+	    if (arr1.length == 0) arr1 = [ZERO];
+	    if (arr2.length == 0) arr2 = [ZERO];
+	    if (arr1[0].lt(arr2[0])) return true;
+	    if (arr1[0].gt(arr2[0])) return false;
 	    arr1.shift();
 	    arr2.shift();
 	}
     }
 });
 
+// Interface for numbers that can appear in exponents
+class AbstractExpNumber {
+    add(num) {}
+    neg() {}
+    sgn() {}
+    geq(num) {}
+    leq(num) {}
+    gt(num) {}
+    lt(num) {}
+    eq(x) {}
+    toString() {}
+    toTex() {}	// I need my numbers to be renderable using MathJax
+}
+
+// Merely a wrapper for built-in JS floating-point numbers
+class FloatExpNumber {
+    constructor(x) {
+	this.value = x;
+    }
+
+    add(num)	{ return new FloatExpNumber(this.value + num.value) }
+    neg()	{ return new FloatExpNumber(-this.value) }
+    sgn()	{ return new FloatExpNumber(Math.sign(this.value)) }
+    geq(num)	{ return this.value >= num.value }
+    leq(num)	{ return this.value <= num.value }
+    gt(num)	{ return this.value > num.value }
+    lt(num)	{ return this.value < num.value }
+    eq(num)	{ return this.value == num.value }
+    toString()	{ return String(this.value) }
+    toTex()	{ return String(this.value) }
+}
+
+const ZERO = new FloatExpNumber(0);
+const ONE = new FloatExpNumber(1);
+const NEGONE = ONE.neg();
+
 class GenericGrowthOrder {
     constructor() { };
 
-    // For pretty printing.
+    // For pretty printing
     display() { console.log("Pretty printing not implemented for generic growth order") };
     displayToBox(id) {
 	let texString = `\$\$${this.display()}\$\$`;
@@ -59,22 +95,22 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
     }
 
     display() {
-	if (this.logPowers.every((x) => x === 0)) return "1";
-	if (!this.logPowers.every((x) => x >= 0)) {
-	    let numerator = new SimpleGrowthOrder(this.logPowers.map((x) => (x > 0) ? x : 0));
-	    let denominator = new SimpleGrowthOrder(this.logPowers.map((x) => (x < 0) ? -x : 0));
+	if (this.logPowers.every((x) => x.eq(ZERO))) return "1";
+	if (!this.logPowers.every((x) => x.geq(ZERO))) {
+	    let numerator = new SimpleGrowthOrder(this.logPowers.map((x) => x.geq(ZERO) ? x : ZERO));
+	    let denominator = new SimpleGrowthOrder(this.logPowers.map((x) => x.leq(ZERO) ? x.neg() : ZERO));
 	    return `\\frac{${numerator.display()}}{${denominator.display()}}`;
 	}
 	let cumlog = "\\log n";
 	let str = "";
-	if (this.logPowers.at(0) == 1) str = `n`;
-	else if (this.logPowers.at(0) != 0) str = `n^{${String(this.logPowers[0])}}`;
+	if (this.logPowers.at(0).eq(ONE)) str = `n`;
+	else if (!this.logPowers.at(0).eq(ZERO)) str = `n^{${this.logPowers.at(0).toTex()}}`;
 	for (let i = 1; i < this.logPowers.length; i++) {
 	    let pow = this.logPowers.at(i);
-	    if (pow != 0) {
+	    if (!pow.eq(ZERO)) {
 		let nextTerm;
-		if (pow == 1) nextTerm = `${cumlog}`;
-		else nextTerm = `(${cumlog})^{${this.logPowers.at(i)}}`;
+		if (pow.eq(ONE)) nextTerm = `${cumlog}`;
+		else nextTerm = `(${cumlog})^{${this.logPowers.at(i).toTex()}}`;
 		if (str.length == 0) str = nextTerm;
 		else str = str.concat(String.raw` \cdot ${nextTerm}`);
 	    }
@@ -94,7 +130,7 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
     }
 
     reciprocal() {
-	return new SimpleGrowthOrder(this.logPowers.map((x) => -x));
+	return new SimpleGrowthOrder(this.logPowers.map((x) => x.neg()));
     }
 
     times(grOrd) {
@@ -102,19 +138,19 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
 	if (grOrd.logPowers.length > this.logPowers.length) return grOrd.times(this);
 	return new SimpleGrowthOrder(this.logPowers.map(function(p1, i) {
 	    if (i >= grOrd.logPowers.length) return p1;
-	    let p2 = grOrd.logPowers[i];
-	    return (p1 + p2);
+	    let p2 = grOrd.logPowers.at(i);
+	    return p1.add(p2);
 	}));
     }
 
     sums() {
 	let i = 0;
-	while(this.logPowers.length > i && this.logPowers[i] == -1) { i++; }
-	let newLogPowers = Array(i).fill(0).concat(this.logPowers.slice(i));
-	if (i == this.logPowers.length) newLogPowers.push(0);
-	if (newLogPowers[i] > -1) {
-	    newLogPowers[i]++;
-	} else if (newLogPowers[i] < -1) {
+	while(this.logPowers.length > i && this.logPowers.at(i).eq(NEGONE)) { i++; }
+	let newLogPowers = Array(i).fill(ZERO).concat(this.logPowers.slice(i));
+	if (i == this.logPowers.length) newLogPowers.push(ZERO);
+	if (newLogPowers.at(i).gt(NEGONE)) {
+	    newLogPowers[i] = newLogPowers.at(i).add(ONE);
+	} else if (newLogPowers.at(i).lt(NEGONE)) {
 	    newLogPowers = [];
 	}
 	return new SimpleGrowthOrder(newLogPowers);
@@ -125,17 +161,17 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
 	if (this.leq(new SimpleGrowthOrder([]))) return undefined;
 
 	let i = 0;
-	while(this.logPowers[i] == 0) { i++; }
-	let newLogPowers = Array(i).fill(-1).concat(this.logPowers.slice(i));
-	newLogPowers[i]--;
+	while(this.logPowers.at(i).eq(ZERO)) { i++; }
+	let newLogPowers = Array(i).fill(NEGONE).concat(this.logPowers.slice(i));
+	newLogPowers[i] = newLogPowers.at(i).add(NEGONE);
 	return new SimpleGrowthOrder(newLogPowers);
     }
 
     log() {
 	let i = 0;
-	while(this.logPowers.length > i && this.logPowers[i] == 0) { i++; }
+	while(this.logPowers.length > i && this.logPowers.at(i).eq(ZERO)) { i++; }
 	if (i == this.logPowers.length) return new SimpleGrowthOrder([]);
-	else return new SimpleGrowthOrder(Array(i+1).fill(0).concat([Math.sign(this.logPowers[i])]));
+	else return new SimpleGrowthOrder(Array(i+1).fill(ZERO).concat([this.logPowers.at(i).sgn()]));
     }
 }
 
@@ -144,12 +180,12 @@ class ExpGrowthOrder extends GenericGrowthOrder {
     static extStack = [];
 
     static canExponentiate(grOrd) {
-	if (grOrd.geq(new SimpleGrowthOrder([1]))) return false;
+	if (grOrd.geq(new SimpleGrowthOrder([ONE]))) return false;
 	if (grOrd.leq(new SimpleGrowthOrder([]))) return false;
 	if (grOrd.rank == 0) {
 	    let logPows = grOrd.logPowers;
-	    let notOnePows = logPows.filter((x) => x != 1);
-	    if (notOnePows.length == logPows.length-1 && notOnePows.filter((x) => x == 0).length == notOnePows.length) return false;
+	    let notOnePows = logPows.filter((x) => !x.eq(ONE));
+	    if (notOnePows.length == logPows.length-1 && notOnePows.filter((x) => x.eq(ZERO)).length == notOnePows.length) return false;
 	}
 	let i;
 	for (i = 0; i < ExpGrowthOrder.height; i++) {
@@ -169,8 +205,8 @@ class ExpGrowthOrder extends GenericGrowthOrder {
 	    ExpGrowthOrder.extStack.push(arg1);
 
 	    this.rank = ExpGrowthOrder.height;
-	    this.expPowers = Array(this.rank).fill(0);
-	    this.expPowers[this.rank-1] = 1;
+	    this.expPowers = Array(this.rank).fill(ZERO);
+	    this.expPowers[this.rank-1] = ONE;
 	    this.simpleTerm = new SimpleGrowthOrder([]);
 	} else {
 	    // Instantiating exponential growth order from a list of powers
@@ -187,9 +223,9 @@ class ExpGrowthOrder extends GenericGrowthOrder {
 	let i = 0;
 	for (i = 0; i < this.rank; i++) {
 	    let pow = this.expPowers.at(i);
-	    if (pow == 1)
+	    if (pow.eq(ONE))
 		factors.push(`\\exp\\Big(${ExpGrowthOrder.extStack.at(i).display()}\\Big)`);
-	    else if (pow != 0)
+	    else if (!pow.eq(ZERO))
 		factors.push(`\\exp\\Big(${ExpGrowthOrder.extStack.at(i).display()}\\Big)^{${pow}}`);
 	}
 	return factors.join(" \\cdot ");
@@ -210,14 +246,14 @@ class ExpGrowthOrder extends GenericGrowthOrder {
     }
 
     reciprocal() {
-	return new ExpGrowthOrder(this.simpleTerm.reciprocal().logPowers, this.expPowers.map((x) => -x));
+	return new ExpGrowthOrder(this.simpleTerm.reciprocal().logPowers, this.expPowers.map((x) => x.neg()));
     }
 
     times(grOrd) {
 	if (grOrd.rank > this.rank) return grOrd.times(this);
 	let grOrdCast = this.upcast(grOrd);
 	let simpleTerm = grOrdCast.simpleTerm.times(this.simpleTerm);
-	let expPowers = grOrdCast.expPowers.map((e, i) => e + this.expPowers[i]);
+	let expPowers = grOrdCast.expPowers.map((e, i) => e.add(this.expPowers.at(i)));
 	return new ExpGrowthOrder(simpleTerm.logPowers, expPowers);
     }
 
@@ -230,18 +266,18 @@ class ExpGrowthOrder extends GenericGrowthOrder {
 	let otherFactor = lowerFactor.times(sumFactor.reciprocal());
 	let absOtherFactor = otherFactor.abs();
 
-	if (finalPower == 0)
+	if (finalPower.eq(ZERO))
 	    return lowerFactor.sums();
 	if (absOtherFactor.eq(new SimpleGrowthOrder([])))
-	    return new ExpGrowthOrder([], Array(this.rank-1).fill(0).concat([finalPower]));
+	    return new ExpGrowthOrder([], Array(this.rank-1).fill(ZERO).concat([finalPower]));
 	
 	let sumRatio = absOtherFactor.delta().times(otherFactor.reciprocal());
 
 	if (sumRatio.leq(sumFactor)) {
-	    if (finalPower > 0) return this.times(sumFactor.reciprocal());
+	    if (finalPower.gt(ZERO)) return this.times(sumFactor.reciprocal());
 	    else return new SimpleGrowthOrder([]);
 	} else if (otherFactor.geq(new SimpleGrowthOrder([]))) {
-	    return lowerFactor.sums().times(new ExpGrowthOrder([], Array(this.rank-1).fill(0).concat([finalPower])));
+	    return lowerFactor.sums().times(new ExpGrowthOrder([], Array(this.rank-1).fill(ZERO).concat([finalPower])));
 	} else {
 	    return new SimpleGrowthOrder([]); 
 	}
@@ -260,8 +296,8 @@ class ExpGrowthOrder extends GenericGrowthOrder {
 	else prefixLog = new ExpGrowthOrder(this.simpleTerm.logPowers, this.expPowers.slice(0,-1)).log();
 	
 	let suffixLog;
-	if (this.expPowers.at(-1) == 0) suffixLog = new SimpleGrowthOrder([]);
-	else if (this.expPowers.at(-1) > 0) suffixLog = ExpGrowthOrder.extStack.at(this.rank-1);
+	if (this.expPowers.at(-1).eq(ZERO)) suffixLog = new SimpleGrowthOrder([]);
+	else if (this.expPowers.at(-1).gt(ZERO)) suffixLog = ExpGrowthOrder.extStack.at(this.rank-1);
 	else suffixLog = ExpGrowthOrder.extStack.at(this.rank-1).reciprocal();
 	
 	if (prefixLog.abs().leq(suffixLog.abs())) return suffixLog;
@@ -269,7 +305,7 @@ class ExpGrowthOrder extends GenericGrowthOrder {
     }
 
     upcast(grOrd) {
-	if (grOrd instanceof SimpleGrowthOrder) return new ExpGrowthOrder(grOrd.logPowers, Array(this.rank).fill(0));
-	else return new ExpGrowthOrder(grOrd.simpleTerm.logPowers, grOrd.expPowers.concat(Array(this.rank-grOrd.rank).fill(0)));
+	if (grOrd instanceof SimpleGrowthOrder) return new ExpGrowthOrder(grOrd.logPowers, Array(this.rank).fill(ZERO));
+	else return new ExpGrowthOrder(grOrd.simpleTerm.logPowers, grOrd.expPowers.concat(Array(this.rank-grOrd.rank).fill(ZERO)));
     }
 }
