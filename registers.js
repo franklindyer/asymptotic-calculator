@@ -6,8 +6,9 @@ class Register {
     static ans = undefined;
     static regList = [];
 
-    static addRegisterNode(id) {
+    static addRegisterNode(id, isConstant) {
 	let registers = document.getElementById("grord-registers");
+	if (isConstant) registers = document.getElementById("extension-registers");
 
 	let newReg = document.createElement("div");
 	newReg.id = `grord-register-${id}`;
@@ -112,20 +113,22 @@ class Register {
 	    Register.displayMessage("Click on the growth order that you would like to exponentiate.");
 	    Register.nextFxn = (reg) => {
 		Register.displayMessage("");
-		Register.ans.setValue(new ExpGrowthOrder(reg.value));
+		let expreg = new Register(new ExpGrowthOrder(reg.value), true);
 		Register.nextFxn = undefined;
 	    };
 	};
 	expBtn.onmouseover = () => { Register.displayMessage("Extend your repertoire of growth orders by taking an exponential.") }
     }
 
-    constructor(grOrd) {
+    constructor(grOrd, isConstant) {
 	if (grOrd == undefined) grOrd = new SimpleGrowthOrder([1]);
+	if (isConstant == undefined) isConstant = false;
 
 	this.id = Register.numRegisters++;
 	this.divID = `grord-register-${this.id}`;
-	this.view = Register.addRegisterNode(this.id);
+	this.view = Register.addRegisterNode(this.id, isConstant);
 	this.setValue(grOrd);
+	this.isConstant = isConstant;
 
 	Register.regList.push(this);
     }
@@ -135,6 +138,10 @@ class Register {
     }
 
     setValue(grOrd) {
+	if (this.isConstant) {
+	    Register.displayMessage("Cannot write to a read-only register.");
+	    return;
+	}
 	this.value = grOrd;
 	let displayText = grOrd.displayToBox(this.divID);
 	document.getElementById(`grord-register-${this.id}`).copyText = displayText;

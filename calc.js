@@ -34,6 +34,10 @@ class GenericGrowthOrder {
     leq(grOrd) { console.log("Comparison not implemented for generic growth order") };
     geq(grOrd) { console.log("Comparison not implemented for generic growth order") };
     eq(grOrd) { return this.leq(grOrd) && this.geq(grOrd) };
+    abs() {
+        if (this.geq(new SimpleGrowthOrder([]))) return this;
+        else return this.reciprocal();
+    }
 
     // Reciprocals
     reciprocal() { console.log("Reciprocals not implemented for generic growth order") };
@@ -131,11 +135,7 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
 	let i = 0;
 	while(this.logPowers.length > i && this.logPowers[i] == 0) { i++; }
 	if (i == this.logPowers.length) return new SimpleGrowthOrder([]);
-	else return Array(i+1).fill(0).concat([Math.sign(this.logPowers[i])]);
-    }
-
-    abs() {
-	return new SimpleGrowthOrder(this.logPowers.map(Math.abs));
+	else return new SimpleGrowthOrder(Array(i+1).fill(0).concat([Math.sign(this.logPowers[i])]));
     }
 }
 
@@ -206,23 +206,51 @@ class ExpGrowthOrder extends GenericGrowthOrder {
 	return new ExpGrowthOrder(simpleTerm.logPowers, expPowers);
     }
 
-    sums() {}
+    sums() {
+	let finalPower = this.expPowers.at(-1);
+	let sumFactor = ExpGrowthOrder.extStack.at(this.rank-1).delta();
+	let lowerFactor;
+	if (this.rank == 1) lowerFactor = this.simpleTerm;
+	else lowerFactor = new ExpGrowthOrder(this.simpleTerm.logPowers, this.expPowers.slice(0,-1));
+	let otherFactor = lowerFactor.times(sumFactor.reciprocal());
+	let absOtherFactor = otherFactor.abs();
+
+	if (finalPower == 0)
+	    return lowerFactor.sums();
+	if (absOtherFactor.eq(new SimpleGrowthOrder([])))
+	    return new ExpGrowthOrder([], Array(this.rank-1).fill(0).concat([finalPower]));
+	
+	let sumRatio = absOtherFactor.delta().times(otherFactor.reciprocal());
+
+	if (sumRatio.leq(sumFactor)) {
+	    if (finalPower > 0) return this.times(sumFactor.reciprocal());
+	    else return new SimpleGrowthOrder([]);
+	} else if (otherFactor.geq(new SimpleGrowthOrder([]))) {
+	    return lowerFactor.sums().times(new ExpGrowthOrder([], Array(this.rank-1).fill(0).concat([finalPower])));
+	} else {
+	    return new SimpleGrowthOrder([]); 
+	}
+    }
 
     delta() {
+	// Cannot apply difference operator to a constant or sub-constant growth order
+        if (this.leq(new SimpleGrowthOrder([]))) return undefined;
+
 	return this.times(this.log().delta());
     }
 
     log() {
-	let prefixLog = undefined;
-	let suffixLog = ExpGrowthOrder.extStack.at(this.rank-1);
-	if (this.expPowers.length == 1) prefixLog = this.simpleTerm.log();
+	let prefixLog;
+	if (this.rank == 1) prefixLog = this.simpleTerm.log();
 	else prefixLog = new ExpGrowthOrder(this.simpleTerm.logPowers, this.expPowers.slice(0,-1)).log();
-	if (prefixLog.abs().leq(suffixLog)) return suffixLog;
+	
+	let suffixLog;
+	if (this.expPowers.at(-1) == 0) suffixLog = new SimpleGrowthOrder([]);
+	else if (this.expPowers.at(-1) > 0) suffixLog = ExpGrowthOrder.extStack.at(this.rank-1);
+	else suffixLog = ExpGrowthOrder.extStack.at(this.rank-1).reciprocal();
+	
+	if (prefixLog.abs().leq(suffixLog.abs())) return suffixLog;
 	else return prefixLog;
-    }
-
-    abs() {
-	return new ExpGrowthOrder(this.simpleTerm.abs().logPowers, this.expPowers.map(Math.abs));
     }
 
     upcast(grOrd) {
