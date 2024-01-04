@@ -143,6 +143,21 @@ class ExpGrowthOrder extends GenericGrowthOrder {
     static height = 0;
     static extStack = [];
 
+    static canExponentiate(grOrd) {
+	if (grOrd.geq(new SimpleGrowthOrder([1]))) return false;
+	if (grOrd.leq(new SimpleGrowthOrder([]))) return false;
+	if (grOrd.rank == 0) {
+	    let logPows = grOrd.logPowers;
+	    let notOnePows = logPows.filter((x) => x != 1);
+	    if (notOnePows.length == logPows.length-1 && notOnePows.filter((x) => x == 0).length == notOnePows.length) return false;
+	}
+	let i;
+	for (i = 0; i < ExpGrowthOrder.height; i++) {
+	    if (grOrd.eq(ExpGrowthOrder.extStack.at(i))) return false;
+	}
+	return true;
+    }
+
     // An ExpGrowthOrder can be instantiated in one of two ways:
     // 1. Pass a single argument to instantiate exp(g) for a given growth order g
     // 2. Pass a pair of lists to instantiate from a list of nested-log powers and exponential factor powers

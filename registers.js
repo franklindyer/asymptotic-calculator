@@ -112,8 +112,12 @@ class Register {
 	expBtn.onclick = () => {
 	    Register.displayMessage("Click on the growth order that you would like to exponentiate.");
 	    Register.nextFxn = (reg) => {
-		Register.displayMessage("");
-		let expreg = new Register(new ExpGrowthOrder(reg.value), true);
+		if (ExpGrowthOrder.canExponentiate(reg.value)) {
+		    Register.displayMessage("");
+		    let expreg = new Register(new ExpGrowthOrder(reg.value), true);
+		} else {
+		    Register.displayMessage("You can only exponentiate super-constant, sub-linear growth orders that aren't the log of a preexisting order.");
+		}
 		Register.nextFxn = undefined;
 	    };
 	};
