@@ -108,6 +108,18 @@ class Register {
 	};
 	timesBtn.onmouseover = () => { Register.displayMessage("Multiply two growth orders.") }
 
+	let powBtn = document.getElementById("pow-button")
+	powBtn.onclick = () => {
+	    Register.displayMessage("Enter a number, and click on a growth order that you would like to raise to that power.");
+	    Register.nextFxn = (reg) => {
+		Register.displayMessage("");
+		let pow = RationalExpNumber.fromString(document.getElementById("calc-input").value);
+		Register.ans.setValue(reg.value.power(pow));
+		Register.nextFxn = undefined;
+	    }
+	}
+	powBtn.onmouseover = () => { Register.displayMessage("Raise a growth order to a constant power.") }
+
 	let expBtn = document.getElementById("exp-button")
 	expBtn.onclick = () => {
 	    Register.displayMessage("Click on the growth order that you would like to exponentiate.");

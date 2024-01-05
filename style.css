@@ -40,7 +40,7 @@ body {
     background-color: rgba(255, 255, 255, 1);
 }
 
-#calc-info {
+.text-bar {
     font-family: Courier;
     font-size: 17px;
     width: 90%;
@@ -69,6 +69,7 @@ body {
     box-shadow: 8px 4px 4px gray;
     animation: fadeIn 1s;
     overflow-x: scroll;
+    height: fit-content;
 }
 
 .grord-register mjx-container {

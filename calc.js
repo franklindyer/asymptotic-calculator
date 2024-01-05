@@ -20,6 +20,7 @@ Object.defineProperty(Array.prototype, 'lexLeq', {
 // Interface for numbers that can appear in exponents
 class AbstractExpNumber {
     add(num) {}
+    mul(num) {}
     neg() {}
     sgn() {}
     geq(num) {}
@@ -27,6 +28,7 @@ class AbstractExpNumber {
     gt(num) {}
     lt(num) {}
     eq(x) {}
+    static fromString(s) {}
     toString() {}
     toTex() {}	// I need my numbers to be renderable using MathJax
 }
@@ -38,6 +40,7 @@ class FloatExpNumber {
     }
 
     add(num)	{ return new FloatExpNumber(this.value + num.value) }
+    mul(num)	{ return new FloatExpNumber(this.value * num.value) }
     neg()	{ return new FloatExpNumber(-this.value) }
     sgn()	{ return new FloatExpNumber(Math.sign(this.value)) }
     geq(num)	{ return this.value >= num.value }
@@ -47,10 +50,105 @@ class FloatExpNumber {
     eq(num)	{ return this.value == num.value }
     toString()	{ return String(this.value) }
     toTex()	{ return String(this.value) }
+    static fromString(s)    { return parseFloat(s) }
 }
 
-const ZERO = new FloatExpNumber(0);
-const ONE = new FloatExpNumber(1);
+class RationalExpNumber {
+    static gcd = function(a, b) {
+	if (!b) return a;
+	return RationalExpNumber.gcd(b, a % b);
+    }
+
+    constructor(n, d) {
+	this.numerator = n;
+	this.denominator = d;
+    }
+
+    simplify() {
+	let div = RationalExpNumber.gcd(this.numerator, this.denominator);
+	this.numerator = this.numerator/div;
+	this.denominator = this.denominator/div;
+	if (this.denominator < 0) {
+	    this.numerator = -this.numerator;
+	    this.denominator = -this.denominator;
+	}
+	return this;
+    }
+
+    add(num) {
+	let n = this.numerator*num.denominator + this.denominator*num.numerator;
+	let d = this.denominator*num.denominator;
+	let sum = new RationalExpNumber(n, d);
+	sum.simplify();
+	return sum;
+    }
+
+    mul(num) {
+	let prod = new RationalExpNumber(this.numerator*num.numerator, this.denominator*num.denominator);
+	prod.simplify();
+	return prod;
+    }
+
+    neg() {
+	return new RationalExpNumber(-this.numerator, this.denominator);	
+    }
+
+    sgn() {
+	this.simplify();
+	return new RationalExpNumber(Math.sign(this.numerator), 1);
+    }
+
+    geq(num) {
+	num.simplify();
+	this.simplify();
+	return this.numerator*num.denominator-this.denominator*num.numerator >= 0;
+    }
+
+    leq(num) {
+	return num.geq(this);
+    }
+    
+    gt(num) {
+	num.simplify();
+	this.simplify();
+	return this.numerator*num.denominator-this.denominator*num.numerator > 0;
+    }
+
+    lt(num) {
+	return num.gt(this);
+    }
+
+    eq(num) {
+	num.simplify();
+	this.simplify();
+	return (this.numerator == num.numerator) && (this.denominator == num.denominator);
+    }
+
+    static fromString(s) {
+	let fracParts = s.split('/');
+	let n = s.at(0);
+	let d;
+	if (fracParts.length == 1) d = 1;
+	else d = fracParts.at(1);
+	return new RationalExpNumber(n, d);
+    }
+
+    toString() {
+	this.simplify();
+	if (this.denominator == 1) return String(this.numerator);
+	return `${this.numerator}/${this.denominator}`;
+    }
+
+    toTex() {
+	return this.toString();
+    }
+
+}
+
+const ZERO = new RationalExpNumber(0, 1);
+const ONE = new RationalExpNumber(1, 1);
+// const ZERO = new FloatExpNumber(0);
+// const ONE = new FloatExpNumber(1);
 const NEGONE = ONE.neg();
 
 class GenericGrowthOrder {
@@ -78,8 +176,9 @@ class GenericGrowthOrder {
     // Reciprocals
     reciprocal() { console.log("Reciprocals not implemented for generic growth order") };
 
-    // Multiplication
+    // Multiplication and scalar powers
     times(grOrd) { console.log("Multiplication not implemented for generic growth order") };
+    power(scal) { console.log("Power functions not implemented for generic growth order") };
 
     // Partial sums, and partial inverse of partial sums
     sums(grOrd) { console.log("Partial sums not implemented for generic growth order") };
@@ -141,6 +240,10 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
 	    let p2 = grOrd.logPowers.at(i);
 	    return p1.add(p2);
 	}));
+    }
+
+    power(scal) {
+	return new SimpleGrowthOrder(this.logPowers.map((x) => x.mul(scal)));
     }
 
     sums() {
@@ -257,6 +360,11 @@ class ExpGrowthOrder extends GenericGrowthOrder {
 	return new ExpGrowthOrder(simpleTerm.logPowers, expPowers);
     }
 
+    power(scal) {
+	let powFxn = (x) => x.mul(scal);
+	return new ExpGrowthOrder(this.simpleTerm.logPowers.map(powFxn), this.expPowers.map(powFxn));
+    }
+
     sums() {
 	let finalPower = this.expPowers.at(-1);
 	let sumFactor = ExpGrowthOrder.extStack.at(this.rank-1).delta();
@@ -271,7 +379,7 @@ class ExpGrowthOrder extends GenericGrowthOrder {
 	if (absOtherFactor.eq(new SimpleGrowthOrder([])))
 	    return new ExpGrowthOrder([], Array(this.rank-1).fill(ZERO).concat([finalPower]));
 	
-	let sumRatio = absOtherFactor.delta().times(otherFactor.reciprocal());
+	let sumRatio = absOtherFactor.delta().times(absOtherFactor.reciprocal());
 
 	if (sumRatio.leq(sumFactor)) {
 	    if (finalPower.gt(ZERO)) return this.times(sumFactor.reciprocal());
