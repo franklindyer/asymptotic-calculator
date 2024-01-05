@@ -85,6 +85,10 @@ body {
     -ms-user-select: none; 
 }
 
+#grord-register-0 {
+    background-color: #ecfddd;
+}
+
 .copy-register {
     position: absolute;
     top: 3px;
