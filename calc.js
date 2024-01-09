@@ -126,10 +126,10 @@ class RationalExpNumber {
 
     static fromString(s) {
 	let fracParts = s.split('/');
-	let n = s.at(0);
+	let n = parseInt(fracParts.at(0));
 	let d;
 	if (fracParts.length == 1) d = 1;
-	else d = fracParts.at(1);
+	else d = parseInt(fracParts.at(1));
 	return new RationalExpNumber(n, d);
     }
 
@@ -183,6 +183,9 @@ class GenericGrowthOrder {
     // Partial sums, and partial inverse of partial sums
     sums(grOrd) { console.log("Partial sums not implemented for generic growth order") };
     delta(grOrd) { console.log("Difference operator not implemented for generic growth order") };
+
+    toString() {}
+    static fromString() {}
 }
 
 // Represents products of powers of nested logarithm growth orders.
@@ -275,6 +278,16 @@ class SimpleGrowthOrder extends GenericGrowthOrder{
 	while(this.logPowers.length > i && this.logPowers.at(i).eq(ZERO)) { i++; }
 	if (i == this.logPowers.length) return new SimpleGrowthOrder([]);
 	else return new SimpleGrowthOrder(Array(i+1).fill(ZERO).concat([this.logPowers.at(i).sgn()]));
+    }
+
+    toString() {
+	return `[${this.logPowers.map((x) => x.toString())}]`;
+    }
+
+    // Accepts a list of powers [p1,p2,...,pn]
+    static fromString(s) {
+	if (s.length == 2) return new SimpleGrowthOrder([]);
+	return new SimpleGrowthOrder(s.slice(1,-1).split(',').map(RationalExpNumber.fromString));
     }
 }
 
@@ -415,5 +428,25 @@ class ExpGrowthOrder extends GenericGrowthOrder {
     upcast(grOrd) {
 	if (grOrd instanceof SimpleGrowthOrder) return new ExpGrowthOrder(grOrd.logPowers, Array(this.rank).fill(ZERO));
 	else return new ExpGrowthOrder(grOrd.simpleTerm.logPowers, grOrd.expPowers.concat(Array(this.rank-grOrd.rank).fill(ZERO)));
+    }
+
+    toString() {
+	return `[${this.simpleTerm.logPowers.map((x) => x.toString())};${this.expPowers.map((x) => x.toString())}]`;
+    }
+
+    // Accepts a list of nested log powers followed by a list of exponential powers: [p1,p2,...,pn;q1,q2,...,qm]
+    static fromString(s) {
+	let parts = s.slice(1,-1).split(';');
+	if (parts.length == 1) return SimpleGrowthOrder.fromString(s);
+	else {
+	    let logPowers = parts.at(0).split(',').map(RationalExpNumber.fromString);
+	    let expPowers = parts.at(1).split(',').map(RationalExpNumber.fromString);
+	    return new ExpGrowthOrder(logPowers, expPowers);
+	}
+    }
+
+    static reset() {
+	ExpGrowthOrder.expStack = [];
+	ExpGrowthOrder.height = [];
     }
 }

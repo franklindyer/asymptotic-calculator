@@ -23,7 +23,7 @@ body {
     height: 50px;
 }
 
-#register-button {
+#register-button, #export-button, #import-button {
     font-family: Courier;
     font-size: 20px;
     width: auto;

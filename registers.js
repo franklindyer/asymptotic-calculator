@@ -44,6 +44,17 @@ class Register {
 	regBtn.onclick = () => { new Register() };
 	regBtn.onmouseover = () => { Register.displayMessage("Add another register.") }
 
+	let importBtn = document.getElementById("import-button");
+	importBtn.onclick = () => { Register.stateFromString(document.getElementById("calc-input").value) };
+	importBtn.onmouseover = () => { Register.displayMessage("Import collection of growth orders from serialized text form.") }
+
+	let exportBtn = document.getElementById("export-button");
+	exportBtn.onclick = () => { 
+	    navigator.clipboard.writeText(Register.stateToString());
+	    Register.displayMessage("Stringified growth orders written to clipboard!"); 
+	};
+	exportBtn.onmouseover = () => { Register.displayMessage("Export current collection of growth orders to serialized text form.") }
+
 	let moveBtn = document.getElementById("move-button")
 	moveBtn.onclick = () => { 
 	    Register.displayMessage("Click on a source register whose value you want to copy."); 
@@ -134,6 +145,35 @@ class Register {
 	    };
 	};
 	expBtn.onmouseover = () => { Register.displayMessage("Extend your repertoire of growth orders by taking an exponential.") }
+    }
+
+    static reset() {
+	ExpGrowthOrder.reset();
+	document.getElementById("grord-registers").innerHTML = "";
+	document.getElementById("extension-registers").innerHTML = "";
+	Register.numRegisters = 0;
+	Register.regList = [];
+	let newAns = new Register();
+	Register.ans = newAns;
+    }
+
+    static stateToString() {
+	let exts = ExpGrowthOrder.extStack.map((e) => 'e'.concat(e.toString())).join(':');
+	let regs = Register.regList.filter((r) => !r.isConstant).map((r) => r.value.toString()).join(':');
+	return `${exts}:${regs}`;
+    }
+
+    static stateFromString(s) {
+	Register.reset();
+
+	let lists = s.split(':');
+	lists.forEach((ls) => {
+	    if (ls.at(0) != 'e') {
+		new Register(ExpGrowthOrder.fromString(ls));
+	    } else {
+		new Register(new ExpGrowthOrder(ExpGrowthOrder.fromString(ls.slice(1))), true);
+	    }
+	});
     }
 
     constructor(grOrd, isConstant) {
